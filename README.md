@@ -28,6 +28,9 @@ A separate disjoint-athlete evaluation chose Ridge and observed 5.68% (jump) and
 
 ### Does the result survive different conditions?
 
+![Diverging bar chart of synthetic forecasting improvements compared with last-observation baseline](demo_results/stress_comparison.svg)
+
+
 Not reliably. An expanded **synthetic stress experiment** with three random seeds and three walk-forward test folds per scenario showed the following **mean percent change in MAE compared with persistence** (positive = improvement; negative = worse):
 
 | Synthetic condition | Jump | Grip |
