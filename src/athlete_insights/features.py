@@ -23,7 +23,10 @@ def validate_and_sort(df: pd.DataFrame) -> pd.DataFrame:
         if out[col].isna().any() or (out[col].astype(str).str.strip() == "").any():
             raise ValueError(f"Blank or null values in {col}")
         out[col] = out[col].astype(str).str.strip()
-    out["session_date"] = pd.to_datetime(out["session_date"], errors="raise").dt.normalize()
+    parsed_dates = pd.to_datetime(out["session_date"], errors="coerce")
+    if parsed_dates.isna().any():
+        raise ValueError("Invalid or missing session_date")
+    out["session_date"] = parsed_dates.dt.normalize()
     out["value"] = pd.to_numeric(out["value"], errors="raise")
     if not np.isfinite(out["value"]).all() or (out["value"] <= 0).any():
         raise ValueError("All test values must be finite and positive")
