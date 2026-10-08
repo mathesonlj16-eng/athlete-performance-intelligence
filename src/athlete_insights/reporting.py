@@ -25,6 +25,11 @@ def make_charts(summary: pd.DataFrame, predictions: pd.DataFrame,
     figure_folder = folder / "figures"
     figure_folder.mkdir(parents=True, exist_ok=True)
     for metric, rows in summary.groupby("test_id"):
+        # Only the validation-selected model is refit using train + validation.
+        # Compare it visually with the persistence baseline, not with train-only
+        # exploratory fits that use less training data.
+        selected_name = rows.loc[rows.chosen_on_validation, "model"].iloc[0]
+        rows = rows.loc[rows.model.isin(["persistence", selected_name])]
         fig, ax = plt.subplots(figsize=(8, 4.6))
         rows = rows.sort_values("mae", ascending=False)
         bars = ax.barh(rows.model, rows.mae)
@@ -104,7 +109,7 @@ Forecast the **next observed test result** for an athlete using their past test 
 
 {_markdown_table(display)}
 
-A lower MAE/RMSE/MAPE is better. The validation set selects the preferred method; the final test period is held out from selection. The benchmark is **last observed value** (persistence). Hatched bars in the charts indicate the validation-selected model.
+A lower MAE/RMSE/MAPE is better. The validation set selects the preferred method; the final test period is held out from selection. The **primary fair comparison** is the validation-selected method (refit on train + validation) against the last-value persistence baseline. Unselected model rows use train-only fits and are exploratory, not a level-training-data test-set ranking. Charts therefore show only the selected method versus persistence (the same method may be both).
 
 ## Validation-selected model versus persistence
 
