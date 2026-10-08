@@ -40,6 +40,14 @@ def test_duplicate_rows_and_unit_mismatch_rejected():
         validate_and_sort(df)
 
 
+@pytest.mark.parametrize("bad_date", [None, "", "not-a-date"])
+def test_missing_or_malformed_session_dates_rejected(bad_date):
+    df = example()
+    df.loc[3, "session_date"] = bad_date
+    with pytest.raises(ValueError, match="Invalid or missing session_date"):
+        validate_and_sort(df)
+
+
 def test_anomaly_uses_prior_sessions_only():
     df = example(13)
     df.loc[8, "value"] = 10.0
