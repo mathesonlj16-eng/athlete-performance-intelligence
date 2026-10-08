@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 
 from .anomalies import find_unusual_drops
+from .evidence import SCENARIOS, run_synthetic_stress_test
 from .features import make_historical_features, validate_and_sort
 from .forecast import evaluate
 from .reporting import make_charts, write_report
@@ -49,7 +50,22 @@ def main() -> None:
     real = sub.add_parser("analyze", help="run on an authorized, de-identified long-format CSV")
     real.add_argument("--csv", type=Path, required=True)
     real.add_argument("--out", type=Path, default=Path("outputs/real"))
+    evidence = sub.add_parser("evidence", help="repeat synthetic walk-forward stress experiments")
+    evidence.add_argument("--out", type=Path, default=Path("outputs/evidence"))
+    evidence.add_argument("--seeds", nargs="+", type=int, default=[42, 43, 44])
+    evidence.add_argument("--scenarios", nargs="+", choices=SCENARIOS, default=list(SCENARIOS))
+    evidence.add_argument("--athletes", type=int, default=48)
+    evidence.add_argument("--weeks", type=int, default=28)
+    evidence.add_argument("--folds", type=int, default=3)
     args = parser.parse_args()
+    if args.command == "evidence":
+        _, report = run_synthetic_stress_test(
+            out=args.out, seeds=tuple(args.seeds), scenarios=tuple(args.scenarios),
+            athletes=args.athletes, weeks=args.weeks, folds=args.folds,
+        )
+        print(report.to_string(index=False))
+        print(f"\nEvidence report: {(args.out / 'STRESS_TEST_REPORT.md').resolve()}")
+        return
     if args.command == "demo":
         data = generate_synthetic_data(athletes=args.athletes, weeks=args.weeks, seed=args.seed)
         summary = run_pipeline(data, args.out, demo=True)
