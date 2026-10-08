@@ -85,3 +85,28 @@ def test_subjects_do_not_leak_across_splits_and_bootstrap_is_finite():
     boot = athlete_cluster_ci(predictions, summary, draws=30)
     assert np.isfinite(boot[["ci_low_pct", "ci_high_pct"]]).to_numpy().all()
     assert (boot.ci_low_pct <= boot.ci_high_pct).all()
+
+
+def test_stress_perturbations_are_reproducible_and_stay_synthetic():
+    from athlete_insights.stress import apply_scenario, SCENARIOS
+    data = generate_synthetic_data(athletes=12, weeks=20, seed=10)
+    untouched = data.copy(deep=True)
+    for scenario in SCENARIOS:
+        first = apply_scenario(data, scenario, seed=7)
+        second = apply_scenario(data, scenario, seed=7)
+        pd.testing.assert_frame_equal(first, second)
+        assert set(first.athlete_id).issubset(set(data.athlete_id))
+        assert first.value.gt(0).all()
+        assert first.duplicated(["athlete_id", "test_id", "session_date"]).sum() == 0
+    pd.testing.assert_frame_equal(data, untouched)
+
+
+def test_stress_reports_all_scenarios_seeds_and_baseline():
+    from athlete_insights.stress import run_stress_experiments, SCENARIOS
+    detail, summary = run_stress_experiments(athletes=12, weeks=20, seeds=(2,))
+    assert len(detail) == len(SCENARIOS) * 2
+    assert set(detail.scenario) == set(SCENARIOS)
+    assert detail.persistence_mae.gt(0).all()
+    assert np.isfinite(detail.improvement_pct.to_numpy()).all()
+    assert len(summary) == len(SCENARIOS) * 2
+    assert (summary.runs == 1).all()
