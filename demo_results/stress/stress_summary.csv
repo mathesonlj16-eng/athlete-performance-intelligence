@@ -1,0 +1,9 @@
+scenario,metric,runs,mean_improvement_pct,worst_improvement_pct,best_improvement_pct,runs_better_than_baseline
+original,countermovement_jump,3,-5.01,-8.23,-0.48,0
+original,grip_strength,3,-8.59,-10.98,-6.24,0
+measurement_noise,countermovement_jump,3,13.14,11.72,14.22,3
+measurement_noise,grip_strength,3,12.68,8.7,15.62,3
+missing_sessions,countermovement_jump,3,0.96,-1.85,4.72,1
+missing_sessions,grip_strength,3,-3.34,-9.93,4.75,1
+late_level_shift,countermovement_jump,3,-8.62,-13.25,-2.46,0
+late_level_shift,grip_strength,3,-12.97,-16.0,-11.14,0
