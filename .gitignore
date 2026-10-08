@@ -5,3 +5,11 @@ __pycache__/
 outputs/
 *.joblib
 .DS_Store
+
+# Local/private inputs must never be committed
+data/
+.env
+.env.*
+*.sqlite
+*.sqlite3
+*.db
