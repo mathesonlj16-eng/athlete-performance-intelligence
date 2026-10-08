@@ -1,0 +1,58 @@
+name: Portfolio verification (on demand)
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - portfolio/readiness-validation-and-results
+    paths:
+      - .github/workflows/portfolio-verification.yml
+
+permissions:
+  contents: read
+
+jobs:
+  portfolio-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install package and test dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Execute all tests
+        run: pytest -q
+      - name: Reproduce original fixed-seed demo
+        run: athlete-insights demo --out /tmp/athlete-demo
+      - name: Verify original benchmark results
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          d = pd.read_csv('/tmp/athlete-demo/forecast_comparison.csv')
+          for metric, expected in {'countermovement_jump': 0.7466, 'grip_strength': 0.8670}.items():
+              r = d[(d.test_id == metric) & d.chosen_on_validation]
+              assert len(r) == 1, (metric, r)
+              observed = float(r.mae.iloc[0])
+              assert abs(observed - expected) <= 0.002, (metric, observed, expected)
+              print(f'{metric}: selected MAE {observed:.4f}')
+          PY
+      - name: Reproduce all stress scenarios and check report integrity
+        run: |
+          athlete-insights evidence --out /tmp/athlete-evidence --seeds 42 43 44 --athletes 48 --weeks 28 --folds 3
+          python - <<'PY'
+          from pathlib import Path
+          import pandas as pd
+          path=Path('/tmp/athlete-evidence')
+          d=pd.read_csv(path/'walk_forward_detail.csv')
+          s=pd.read_csv(path/'scenario_summary.csv')
+          assert len(d)==72, len(d)
+          assert len(s)==8, len(s)
+          assert set(d.scenario)=={'smooth','noisy','irregular','random_walk'}
+          assert (d.train_end < d.validation_start).all()
+          assert (d.validation_end < d.test_start).all()
+          assert d.groupby(['scenario','seed','test_id']).fold.nunique().eq(3).all()
+          assert (d.athletes_worse_pct.between(0,100)).all()
+          print('All 72 fold evaluations and 8 scenario summaries verified.')
+          PY
