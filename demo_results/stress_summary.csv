@@ -1,0 +1,9 @@
+scenario,test_id,unit,evaluations,mean_improvement_pct,min_improvement_pct,max_improvement_pct,fraction_improved,mean_athletes_worse_pct
+irregular,countermovement_jump,cm,9,0.0625,-18.4571,12.7893,0.4444,42.6555
+irregular,grip_strength,kg,9,-1.8085,-7.6316,4.1075,0.3333,45.7693
+noisy,countermovement_jump,cm,9,10.8684,3.8645,19.4788,1.0000,39.3519
+noisy,grip_strength,kg,9,7.6815,3.1741,15.0718,1.0000,40.7407
+random_walk,countermovement_jump,cm,9,0.0000,0.0000,0.0000,0.0000,0.0000
+random_walk,grip_strength,kg,9,0.0000,0.0000,0.0000,0.0000,0.0000
+smooth,countermovement_jump,cm,9,-0.2911,-4.0383,5.5946,0.2222,30.3241
+smooth,grip_strength,kg,9,-3.3954,-13.4372,0.2447,0.1111,43.0556
