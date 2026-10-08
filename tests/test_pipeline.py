@@ -40,6 +40,29 @@ def test_duplicate_rows_and_unit_mismatch_rejected():
         validate_and_sort(df)
 
 
+@pytest.mark.parametrize("bad_date", [None, "", "not-a-date"])
+def test_missing_or_malformed_session_dates_rejected(bad_date):
+    df = example()
+    df.loc[3, "session_date"] = bad_date
+    with pytest.raises(ValueError, match="Invalid or missing session_date"):
+        validate_and_sort(df)
+
+
+@pytest.mark.parametrize("bad_value", [np.nan, np.inf, -1.0, 0.0])
+def test_nonfinite_or_nonpositive_readings_rejected(bad_value):
+    df = example()
+    df.loc[3, "value"] = bad_value
+    with pytest.raises(ValueError, match="finite and positive"):
+        validate_and_sort(df)
+
+
+def test_unsorted_input_produces_the_same_historical_features():
+    df = example()
+    chronological = make_historical_features(df)
+    shuffled = make_historical_features(df.sample(frac=1.0, random_state=3))
+    pd.testing.assert_frame_equal(chronological, shuffled)
+
+
 def test_anomaly_uses_prior_sessions_only():
     df = example(13)
     df.loc[8, "value"] = 10.0
