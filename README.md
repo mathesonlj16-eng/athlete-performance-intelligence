@@ -26,6 +26,27 @@ A separate disjoint-athlete evaluation chose Ridge and observed 5.68% (jump) and
 
 **Interpretation:** These numbers are illustrative outcomes on data generated with deliberately predictable patterns—not verified improvements on real athletes. The primary comparison is the validation-selected model against the last-value baseline. Other test-set model rows are exploratory train-only fits, not equal-training-data final rankings.
 
+### Does the result survive different conditions?
+
+Not reliably. An expanded **synthetic stress experiment** with three random seeds and three walk-forward test folds per scenario showed the following **mean percent change in MAE compared with persistence** (positive = improvement; negative = worse):
+
+| Synthetic condition | Jump | Grip |
+| --- | ---: | ---: |
+| Smooth, smaller synthetic cohorts | **-0.29%** | **-3.40%** |
+| Noisier measurements | +10.87% | +7.68% |
+| Irregular / missed sessions | +0.06% | -1.81% |
+| Independent random-walk changes | 0.00% | 0.00% |
+
+The fixed-seed example above and this smaller-cohort multi-seed study use **different experimental designs**. The favorable first demo should **not** be presented as reliably replicated. See the [full stress-test findings, including negative outcomes](demo_results/STRESS_TEST_FINDINGS.md) and [aggregated CSV](demo_results/stress_summary.csv). These are only artificial cohorts; they say nothing yet about real-athlete prediction accuracy.
+
+Re-run the stress experiment after installation:
+
+~~~bash
+athlete-insights evidence --out outputs/evidence --seeds 42 43 44 --athletes 48 --weeks 28 --folds 3
+~~~
+
+The command writes all chronological test boundaries, selected models, and per-athlete failure shares to the generated CSV rather than hiding unfavorable folds. It runs only when explicitly requested, not during routine tests or GitHub Actions.
+
 ## Start in five minutes
 
 Python 3.10+ is required. In PowerShell:
