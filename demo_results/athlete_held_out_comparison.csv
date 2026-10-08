@@ -1,0 +1,3 @@
+test_id,unit,validation_selected,n_test,test_athletes,selected_mae,persistence_mae,improvement_pct
+countermovement_jump,cm,ridge,696,24,0.7218,0.7653,5.68
+grip_strength,kg,ridge,696,24,0.8265,0.8777,5.84
