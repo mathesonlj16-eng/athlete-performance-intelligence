@@ -1,0 +1,9 @@
+test_id,unit,model,chosen_on_validation,validation_mae,n_test,mae,rmse,mape_pct
+countermovement_jump,cm,persistence,False,0.8397,720,0.7998,1.241,2.1717
+countermovement_jump,cm,recent_3_mean,False,0.8116,720,0.8504,1.1591,2.3017
+countermovement_jump,cm,ridge,False,0.7942,720,0.8021,1.098,2.1556
+countermovement_jump,cm,hist_gradient_boosting,True,0.7763,720,0.7466,1.042,2.0171
+grip_strength,kg,persistence,False,1.0716,720,0.9717,1.5183,2.0405
+grip_strength,kg,recent_3_mean,False,1.0761,720,1.0199,1.4264,2.1262
+grip_strength,kg,ridge,False,1.0279,720,0.9738,1.3698,2.0293
+grip_strength,kg,hist_gradient_boosting,True,1.0274,720,0.867,1.2787,1.8179
