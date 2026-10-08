@@ -1,0 +1,30 @@
+{
+  "chronological": {
+    "countermovement_jump": {
+      "train_end": "2025-05-26",
+      "validation_start": "2025-06-02",
+      "validation_end": "2025-06-30",
+      "test_start": "2025-07-07",
+      "test_end": "2025-08-11",
+      "train_n": 2160,
+      "validation_n": 600,
+      "test_n": 720
+    },
+    "grip_strength": {
+      "train_end": "2025-05-26",
+      "validation_start": "2025-06-02",
+      "validation_end": "2025-06-30",
+      "test_start": "2025-07-07",
+      "test_end": "2025-08-11",
+      "train_n": 2160,
+      "validation_n": 600,
+      "test_n": 720
+    }
+  },
+  "disjoint_athletes": {
+    "train_athletes": 78,
+    "validation_athletes": 18,
+    "test_athletes": 24,
+    "method": "disjoint athletes (not chronological)"
+  }
+}
