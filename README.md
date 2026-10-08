@@ -13,6 +13,19 @@
 5. Flags unusual drops using a transparent historical median/MAD rule, with an absolute drop threshold. Labels are **observational statistical flags**, not medical or injury classifications.
 6. Generates an honest report, machine-readable predictions and charts.
 
+## Reproducible results at a glance
+
+The fixed-seed demonstration uses **120 fictional athletes, 32 weekly sessions and two test types**. The model is selected on validation dates and evaluated on later, untouched test dates.
+
+| Synthetic test | Selected forecasting method | Selected test MAE | Last-value baseline MAE | MAE reduction |
+| --- | --- | ---: | ---: | ---: |
+| Countermovement jump | Histogram gradient boosting | 0.7466 cm | 0.7998 cm | 6.65% |
+| Grip strength | Histogram gradient boosting | 0.8670 kg | 0.9717 kg | 10.78% |
+
+A separate disjoint-athlete evaluation chose Ridge and observed 5.68% (jump) and 5.84% (grip) lower synthetic-data MAE than persistence. Full evidence, uncertainty intervals, and limitations are in [the evaluation report](demo_results/EVALUATION_REPORT.md).
+
+**Interpretation:** These numbers are illustrative outcomes on data generated with deliberately predictable patterns—not verified improvements on real athletes. The primary comparison is the validation-selected model against the last-value baseline. Other test-set model rows are exploratory train-only fits, not equal-training-data final rankings.
+
 ## Start in five minutes
 
 Python 3.10+ is required. In PowerShell:
