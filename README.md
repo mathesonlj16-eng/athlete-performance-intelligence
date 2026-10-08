@@ -1,116 +1,88 @@
 # Athlete Performance Intelligence
 
-**Independent computer-science / applied-ML research prototype** — built to demonstrate data engineering, longitudinal forecasting, anomaly detection, and rigorous evaluation. This is **not** part of TMX's production system.
+**Independent applied-machine-learning research prototype** · Python · Pandas · scikit-learn · time-series evaluation
 
-> **Data integrity:** The included demonstration is 100% synthetic. There is no real athlete data, no injury prediction, no invented validation claim and no connection to TMX's database. Do not claim the included synthetic performance figures demonstrate real-world predictive ability.
+> **Research status:** All included measurements are fictional. This project is not connected to TMX, includes no client records, and makes no injury-detection or real-world prediction claims.
 
-## What it does
+## Research question
 
-1. Generates fictional longitudinal test results for 120 athletes across 32 weeks in two measurement protocols: countermovement jump (cm) and grip strength (kg).
-2. Builds strictly historical features: three preceding results, previous-three-session mean/standard deviation, preceding change, days since last test and session number. Every feature for session *t* is based on sessions *before t*.
-3. Evaluates one-step-ahead forecasting with **chronological train/validation/test splits**. Benchmarks persistence (use the previous result), a simple recent average, regularized linear regression (Ridge), and histogram gradient boosting. Selects a method **only using validation performance**, evaluates on untouched later dates, and makes a per-test comparison.
-4. Performs an additional **held-out-athlete test**, with no athlete identity shared across model training, validation and test; calculates **athlete-cluster bootstrap confidence intervals** around forecasting improvement.
-5. Flags unusual drops using a transparent historical median/MAD rule, with an absolute drop threshold. Labels are **observational statistical flags**, not medical or injury classifications.
-6. Generates an honest report, machine-readable predictions and charts.
+Can historical athlete testing measurements predict the next observed result more accurately than simply repeating the last result? Under which conditions does additional machine-learning complexity **hurt** rather than help?
 
-## Start in five minutes
+### Fixed-seed demo (synthetic data)
 
-Python 3.10+ is required. In PowerShell:
+The initial 120-athlete, 32-week synthetic run (seed 42) selected histogram gradient boosting and recorded **6.65% lower MAE on countermovement jump** and **10.78% lower MAE on grip strength** relative to persistence. These are illustrations only: other seeds did not consistently reproduce the advantage.
 
-```powershell
-py -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install -e ".[dev]"
-athlete-insights demo --out outputs/demo
-pytest -q
+![Baseline versus model on fictional data](docs/figures/fixed_seed_forecast.svg)
+
+### Stress tests: successes and failures
+
+Three additional predetermined seeds (11, 17 and 23), 48 athletes, 26 weeks, two metrics and four synthetic perturbations:
+
+| Condition | Jump: mean change in MAE | Grip: mean change in MAE |
+| --- | ---: | ---: |
+| Unmodified generator, different seeds | **-5.01%** | **-8.59%** |
+| Additional 4% measurement noise | **+13.14%** | **+12.68%** |
+| Remove 25% of sessions | **+0.96%** | **-3.34%** |
+| Late persistent shift for 30% of athletes | **-8.62%** | **-12.97%** |
+
+**Positive = improvement over last-observation baseline; negative = worse.** The single-seed gains did not generalize consistently across these fictional conditions. The selected method is chosen from validation data, never test data.
+
+![Stress-test results across fictional cohorts](docs/figures/stress_sensitivity.svg)
+
+See [the complete experiment protocol, limitations and failure analysis](docs/EXPERIMENTS.md), [per-seed results](demo_results/stress/stress_runs.csv) and [summary statistics](demo_results/stress/stress_summary.csv).
+
+## What the code implements
+
+- Historical-only features (three past results, rolling variability, change rate, elapsed days and session index), plus checks for invalid rows and mismatched units.
+- Persistence and 3-session-mean baselines alongside Ridge regression and histogram gradient boosting.
+- Chronological train/validation/test evaluation, plus a separate split holding out complete athlete identities.
+- Athlete-cluster bootstrap uncertainty intervals and historical median/MAD unusual-drop flags, **not medical classifications**.
+- A reproducible synthetic stress experiment varying noise, missing visits and late performance shifts.
+- Automated tests covering temporal leakage, split separation, evaluation and scenario determinism.
+
+```mermaid
+flowchart LR
+ A[Generate fictional sessions] --> B[Validate and sort]
+ B --> C[Historical-only features]
+ C --> D[Chronological training]
+ D --> E[Choose on validation]
+ E --> F[Test on future dates]
+ F --> G[Benchmark vs last observation]
+ G --> H[Repeat stress experiments]
 ```
 
-macOS/Linux:
+## Reproduce locally
+
+Python 3.10 or later:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e '.[dev]'
-athlete-insights demo --out outputs/demo
+python -m venv .venv
+# Activate your virtual environment, then:
+python -m pip install -e '.[dev]'
 pytest -q
+athlete-insights demo --out outputs/demo
+python -m athlete_insights.stress --out outputs/stress
 ```
 
-You can alternatively use `python -m athlete_insights demo` after installing.
+The **demo** generates a synthetic dataset, forecast comparisons, held-out-athlete results, bootstrap intervals, sample unusual-drop flags, charts and a full report. The **stress command** generates per-seed CSVs, scenario summaries and plots. Smaller reference artifacts appear under [demo_results](demo_results); the exact time/date and disjoint-athlete splits are in [splits.json](demo_results/splits.json).
 
-### Demo outputs
-
-- `outputs/demo/EVALUATION_REPORT.md` — outcomes, baselines, error metrics, methodology and limitations
-- `outputs/demo/forecast_comparison.csv` — each model's holdout error and validation-selected model
-- `outputs/demo/test_predictions.csv` — holdout predictions for each forecast method
-- `outputs/demo/unusual_drop_flags.csv` — statistically unusual drops, with context
-- `outputs/demo/athlete_held_out_comparison.csv` — accuracy on athletes excluded from model training
-- `outputs/demo/athlete_bootstrap_intervals.csv` — uncertainty in improvements, resampling whole athletes
-- `outputs/demo/splits.json` — dates and sizes of train/validation/test splits
-- `outputs/demo/figures/*.png` — report-ready plots
-- `outputs/demo/synthetic_sessions.csv` — clearly labeled fictional records
-
-The repository includes a compact `demo_results/` evaluation report, model comparison CSVs, and split metadata from a fixed-seed **synthetic** run. Larger generated prediction files, the full synthetic session dataset, and PNG figures are not committed; reproduce those locally with `athlete-insights demo --out outputs/demo`.
-
-## Running on real, authorized data later
-
-Prepare a pseudonymized, long-format CSV (no names, DOBs, exact addresses, or contact information):
-
-```csv
-athlete_id,session_date,test_id,value,unit
-P0001,2025-01-06,countermovement_jump,35.2,cm
-P0001,2025-01-13,countermovement_jump,36.1,cm
-P0001,2025-01-20,countermovement_jump,36.6,cm
-```
-
-Each `(athlete_id, test_id, session_date)` must be unique; separate metric types must not be mixed, and every `test_id` must consistently use one unit. Enough longitudinal data is necessary (at least 12 distinct feature-eligible dates and several athletes); otherwise evaluation will refuse to run.
+### Authorized real data (future work)
 
 ```bash
 athlete-insights analyze --csv path/to/authorized_deidentified_sessions.csv --out outputs/real
 ```
 
-**Permissions:** Obtain explicit authorization and a lawful basis to use/export any athlete records. Client data stays out of this project until permission, consent, and appropriate privacy protections are in place. Pseudonyms alone do not necessarily make data anonymous. Do not commit real results/records to a public repository.
+Input schema: `athlete_id,session_date,test_id,value,unit`. Each athlete/test/date must be unique; each test must have one consistent unit. The current design needs sufficient repeated measurements and at least 12 distinct feature-eligible testing dates. **Do not export, commit or analyze real client records without permission, privacy safeguards and appropriate authority.** Pseudonymous records are not necessarily anonymous.
 
-## Research question and evaluation design
+There is **no real-world validation yet**. Future work must identify an appropriately licensed longitudinal dataset, freeze the evaluation protocol, and report performance across real cohorts and failure cases. Pre/post-only public sports datasets cannot be treated as full longitudinal training histories.
 
-**Question:** For sequential athlete-testing records, can a model predict the next observed measurement more accurately than a last-value baseline, and can historical deviations be surfaced transparently?
+## Limits and interpretation
 
-**Success criteria:** A model must demonstrate robust lower out-of-time error than simple baselines across meaningful data slices, not merely a high training R². Results on fictional trajectories only verify that the experimental pipeline works; a real-data test is necessary before making claims about utility.
+- Synthetic trajectories may be easier to predict because they were generated with simplified patterns.
+- The model predicts the *next observed measurement* using preceding measurements, not an entire training season.
+- The athlete-held-out experiment probes a different question than the chronological test; neither constitutes an external validation.
+- Bootstrap confidence intervals on fictional subjects quantify sampling variability within the simulation, not field accuracy.
+- No athlete injury, fatigue or medical inference is supported by the current evidence.
+- No paid API, production deployment, private TMX data or automatic GitHub Actions workflow is required.
 
-### Threats to validity
-
-- The generator embeds smooth trajectories, so apparent predictability is partly a property of how the data were synthesized.
-- The test estimates *next-test* readings for repeatedly observed athletes. The separate held-out-athlete experiment probes new-athlete generalization; neither design evaluates long-horizon forecasts.
-- Rolling evaluation uses actual earlier test-period observations as history. Those would be available at each real prediction time, but they are not available for forecasts made many weeks ahead.
-- Session-level comparisons are descriptive, not diagnostic; sport, age, protocol and sample sizes matter.
-- Test data are not used for feature selection or algorithm selection; synthetic data generation settings, however, are known to this project's author.
-- Automated alerts need expert review, prospective validation and false-positive monitoring before any practical adoption.
-
-## Repository organization
-
-```text
-src/athlete_insights/
-  synthetic.py     # reproducible fictional data
-  features.py      # data checks and no-lookahead features
-  forecast.py      # baselines, models, chronological evaluation
-  anomalies.py     # historical-only flags
-  reporting.py     # written and visual artifacts
-  cli.py           # repeatable CLI
- tests/            # leakage, validation, splits, end-to-end checks
- demo_results/     # generated synthetic demonstration (fixed seed)
-```
-
-## Next milestones
-
-1. **Permissions + data contract:** Obtain consent/authorization for a de-identified export from real historical athlete tests, or find a legitimately licensed public longitudinal dataset.
-2. **Rigorous out-of-athlete generalization:** Evaluate external public or authorized de-identified cohorts and additional calendar seasons; compare whether findings replicate.
-3. **Explainability and error analysis:** Report results per metric, athlete cohort and testing frequency; document failure cases and uncertainty rather than only one overall metric.
-4. **Optional TMX integration later:** Build a read-only CSV export adapter and keep all experimentation outside the client's application until they ask for it.
-
-## Resume-safe description
-
-**Athlete Performance Intelligence — Independent ML Research Prototype**  
-*Python, Pandas, scikit-learn, data engineering, time-series evaluation*
-
-> Developed a reproducible athlete-performance forecasting prototype using synthetic longitudinal data, historical feature engineering, chronological and athlete-held-out evaluation, bootstrap uncertainty analysis, and statistical unusual-drop detection. Compared regularized regression and gradient boosting against persistence and rolling-average baselines; documented model performance, data leakage controls and real-world limitations.
-
-This is an accurate technical description **after implementing and running the demo**. It does not claim successful real-world prediction or access to real athlete data.
+**Current status:** methods prototype with documented synthetic successes **and failures**. Suitable to discuss as an ongoing independent coding/research project, not as a validated ML product.
