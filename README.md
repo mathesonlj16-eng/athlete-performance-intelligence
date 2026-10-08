@@ -49,7 +49,7 @@ You can alternatively use `python -m athlete_insights demo` after installing.
 - `outputs/demo/figures/*.png` — report-ready plots
 - `outputs/demo/synthetic_sessions.csv` — clearly labeled fictional records
 
-The repository includes `demo_results/` from one fixed-seed run so that results can be reviewed without executing code.
+The repository includes a compact `demo_results/` evaluation report, model comparison CSVs, and split metadata from a fixed-seed **synthetic** run. Larger generated prediction files, the full synthetic session dataset, and PNG figures are not committed; reproduce those locally with `athlete-insights demo --out outputs/demo`.
 
 ## Running on real, authorized data later
 
