@@ -1,6 +1,10 @@
 # Athlete Performance Intelligence
 
+**Should a coach trust a model's forecast of an athlete's next test, or just assume they'll repeat their last result?** This project builds the forecasting pipeline and, more importantly, the evaluation that answers that question honestly, including when the model makes things worse.
+
 **Independent applied-machine-learning research prototype** · Python · Pandas · scikit-learn · time-series evaluation
+
+`120 synthetic athletes × 32 weeks` · `2 ML models vs 2 simple baselines` · `5.7–5.8% lower error on fully held-out athletes` · `24 stress-test runs, model won only 8` · `leakage-checked chronological splits`
 
 > **Research status:** All included measurements are fictional. This project is not connected to TMX, includes no client records, and makes no injury-detection or real-world prediction claims.
 
@@ -18,7 +22,7 @@ The initial 120-athlete, 32-week synthetic run (seed 42) selected histogram grad
 
 Three additional predetermined seeds (11, 17 and 23), 48 athletes, 26 weeks, two metrics and four synthetic perturbations:
 
-| Condition | Jump: mean change in MAE | Grip: mean change in MAE |
+| Condition | Jump: mean MAE improvement vs baseline | Grip: mean MAE improvement vs baseline |
 | --- | ---: | ---: |
 | Unmodified generator, different seeds | **-5.01%** | **-8.59%** |
 | Additional 4% measurement noise | **+13.14%** | **+12.68%** |
